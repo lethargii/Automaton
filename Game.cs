@@ -10,21 +10,23 @@ public partial class Game : Node2D
   Camera2D cam;
   Timer timer;
   Button startButton;
+  Button stopButton;
   HSlider speedSlider;
+  Vector2 move;
+  Vector2 oldCamPos;
 
   public override void _Ready(){
     grid = (TileMapLayer)GetNode("TileMapLayer");
     cam = (Camera2D)GetNode("Camera2D");
     timer = (Timer)GetNode("Timer");
     timer.Timeout += OnTimerTimeout;
-    startButton = (Button)GetNode("CanvasLayer/StartButton");
+    startButton = (Button)GetNode("CanvasLayer/Buttons/StartButton");
     startButton.Pressed += OnStartButtonPressed;
+    stopButton = (Button)GetNode("CanvasLayer/Buttons/StopButton");
+    stopButton.Pressed += OnStopButtonPressed;
     speedSlider = (HSlider)GetNode("CanvasLayer/SpeedSlider");
     speedSlider.ValueChanged += OnSpeedSliderValueChanged;
     matrix = new int[100, 100];
-    matrix[5, 5] = 1;
-    matrix[5, 6] = 1;
-    matrix[5, 7] = 1;
     next = new int[100, 100];
   }
   
@@ -33,11 +35,16 @@ public partial class Game : Node2D
   }
 
   public void DrawMatrix(){
-    Vector2 viewportSize = cam.GetViewportRect().Size/32;
-    Vector2 cameraPos = cam.GlobalPosition/32;
+    /*Vector2 viewportSize = cam.GetViewportRect().Size/32*cam.Zoom.Length();
+    Vector2 cameraPos = cam.GlobalPosition/32*cam.Zoom.Length();
     for(int i = (int)(cameraPos.X - viewportSize.X/2); i < Math.Ceiling(cameraPos.X + viewportSize.X/2); i++){
       for(int j = (int)(cameraPos.Y - viewportSize.Y/2); j < Math.Ceiling(cameraPos.Y + viewportSize.Y/2); j++){
         SetCell(i, j, this.matrix[i, j]);
+      }
+    }*/
+    for(int i = 0; i < matrix.GetLength(0); i++){
+      for(int j = 0; j < matrix.GetLength(1); j++){
+        SetCell(i, j, matrix[i, j]);
       }
     }
   }
@@ -55,13 +62,6 @@ public partial class Game : Node2D
   }
 
   public void UpdateMatrix(){
-    // foreach(int i in new List<int> {0, matrix.GetLength(0) - 1}){
-    //   foreach(int j in new List<int> {0, matrix.GetLength(1) - 1}){
-    //
-    //   }
-    // }
-    // int sum = matrix[0, 1] + matrix[1, 0] + matrix[1, 1];
-    // UpdateCell(0, 0, sum);
     for(int i = 0; i < matrix.GetLength(0); i++){
       for(int j = 0; j < matrix.GetLength(1); j++){
         int sum = 0;
@@ -87,6 +87,14 @@ public partial class Game : Node2D
 
   public void OnStartButtonPressed(){
     timer.Start();
+    startButton.Disabled = true;
+    stopButton.Disabled = false;
+  }
+
+  public void OnStopButtonPressed(){
+    timer.Stop();
+    stopButton.Disabled = true;
+    startButton.Disabled = false;
   }
 
   public void OnSpeedSliderValueChanged(double value){
@@ -95,18 +103,31 @@ public partial class Game : Node2D
 
   public override void _Input(InputEvent @event){
     if(@event is InputEventMouseButton mouseEvent){
-      if(mouseEvent.Pressed && mouseEvent.ButtonIndex == MouseButton.Left){
-        Vector2 globalMousPos = GetGlobalMousePosition()/32;
-        this.matrix[(int)(globalMousPos.X), (int)(globalMousPos.Y)] = 1;
+      if(mouseEvent.Pressed && mouseEvent.ButtonIndex == MouseButton.Middle){
+        move = GetGlobalMousePosition();
+        oldCamPos = cam.Position;
       }
-      if(mouseEvent.Pressed && mouseEvent.ButtonIndex == MouseButton.Right){
-        Vector2 globalMousPos = GetGlobalMousePosition()/32;
-        this.matrix[(int)(globalMousPos.X), (int)(globalMousPos.Y)] = 0;
+      if(mouseEvent.Pressed && mouseEvent.ButtonIndex == MouseButton.WheelUp){
+        cam.Zoom /= 0.8f;
+      }
+      if(mouseEvent.Pressed && mouseEvent.ButtonIndex == MouseButton.WheelDown){
+        cam.Zoom *= 0.8f;
       }
     }
   }
 
     public override void _Process(double delta){
       DrawMatrix();
+      if(Input.IsMouseButtonPressed(MouseButton.Left)){
+        Vector2 globalMousPos = GetGlobalMousePosition()/32;
+        this.matrix[(int)(globalMousPos.X), (int)(globalMousPos.Y)] = 1;
+      }
+      if(Input.IsMouseButtonPressed(MouseButton.Right)){
+        Vector2 globalMousPos = GetGlobalMousePosition()/32;
+        this.matrix[(int)(globalMousPos.X), (int)(globalMousPos.Y)] = 0;
+      }
+      if(Input.IsMouseButtonPressed(MouseButton.Middle)){
+        cam.Position = oldCamPos - GetGlobalMousePosition() + move;
+      }
     }
 }

@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://ih7qarmexnn8"]
 
-[ext_resource type="Script" uid="uid://bag34by3800xr" path="res://Game.cs" id="1_80nbo"]
+[ext_resource type="Script" path="res://Game.cs" id="1_80nbo"]
 [ext_resource type="Texture2D" uid="uid://jrnxo84rsnj2" path="res://Tiles.jpg" id="2_e2o6t"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_e2o6t"]
@@ -34,11 +34,26 @@ limit_bottom = 32000
 offset_right = 544.0
 offset_bottom = 16.0
 
-[node name="StartButton" type="Button" parent="CanvasLayer"]
+[node name="Buttons" type="Control" parent="CanvasLayer"]
+layout_mode = 3
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -8.0
-offset_bottom = 8.0
+offset_left = -40.0
+offset_bottom = 40.0
 grow_horizontal = 0
+
+[node name="StartButton" type="Button" parent="CanvasLayer/Buttons"]
+layout_mode = 0
+offset_left = -52.0
+offset_top = 1.0
+offset_right = -6.0
+offset_bottom = 32.0
 text = "Start"
+
+[node name="StopButton" type="Button" parent="CanvasLayer/Buttons"]
+layout_mode = 0
+offset_right = 43.0
+offset_bottom = 31.0
+disabled = true
+text = "Stop"
